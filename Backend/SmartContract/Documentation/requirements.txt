@@ -1,0 +1,121 @@
+Models:
+
+BaseAudit :
+    created_at (datetime -> default = datetime.now)
+    updated_at (datetime -> default = datetime.now)
+    updated_by (string -> default = system)
+    is_deleted (bool -> default = false)
+
+Institution inherits BaseAudit: 
+    id (Guid), 
+    name (string), 
+    year_opened (number), 
+    summary (string), 
+    is_active (bool),
+    bank_account_details_id
+
+Student inherits BaseAudit: 
+    id (Guid), 
+    student_number (number)
+    institution_id (Guid -> Foreign Key, indexed), 
+    course_id (number), 
+    course_name (string), 
+    year (number), 
+    is_active (bool),
+    enrollment_status (string) 
+    is_funded (bool),
+    additional_details (json) 
+    funder_id (Guid -> Foreign Key, indexed), 
+    funder_contract_id (Guid -> Foreign Key, indexed)
+    
+    
+
+BankAccountDetails inherits BaseAudit: 
+    id (Guid), 
+    bank_account_number (long), 
+    bank_name (string), 
+    bank_branch_code (string),
+    is_confirmed (bool -> default = False)
+    data_confirmed_by_id (Guid -> Foreign Key on student_id)
+
+FundingContract inherits BaseAudit: 
+    id (Guid), 
+    funder_id (Guid -> Foreign Key, indexed), 
+    student_id (Guid -> Foreign Key, indexed), 
+    funder_contract_conditions_id (Guid -> Foreign Key, indexed), 
+    signed_on (datetime -> default = datetime.now), 
+    is_active (bool -> default = False), 
+    food_balance (decimal -> default = 0), 
+    tuition_balance (decimal -> default = 0), 
+    laptop_balance (decimal -> default = 0), 
+
+FunderContractConditions inherits BaseAudit: 
+    (student_id (Guid), funder_id (Guid)) -> Composite Primary Key
+    is_full_coverage (bool), 
+    minimum_years_funded (number), 
+    max_years_funded (number), 
+    first_semester_average (number), 
+    last_semester_average (number), 
+    full_year_average (number),
+    average_year (number),
+    total_amount (decimal),
+    food_amount (decimal),
+    tuition_amount (decimal),
+    laptop_book_amount (decimal),
+    accommodation_amount (decimal),
+    accommodation_direct_pay (decimal),
+    student_accommodation_details_id (Guid -> Foreign Key, indexed)
+    monthly_food_amount (decimal),
+    monthly_accommodation_amount (decial)
+    food_payment_status (Guid -> ForeignKey on Payment_Status)
+    payment_date (datetime)
+    bank_account_details_id (Guid -> Foreign Key, indexed)
+
+Payment_Status_Codes inherits BaseAudit:
+    id (Guid)
+    status: (string)    
+
+StudentAccommodationDetails inherits BaseAudit:
+    id (Guid)
+    home_address (string),
+    postal_code (number),
+    suburb (string),
+    owner_fullname (string),
+    owner_email (string, optional),
+    owner_number (string),
+    student_id (Guid -> Foreign Key, indexed)
+
+AuditTrail inherits BaseAudit: 
+    id (Guid), 
+    table_name (string), 
+    operation (string),
+    pre_image (json), 
+    post_image (json), 
+    ip_address (string), 
+    machine_type (string),
+    message (string?)
+
+StudentPayments inherits BaseAudit:
+    student_id , student_payment_id (Composite Primary Key),
+    summary (string)
+
+Payment_Type inherits BaseAudit:
+    id (Guid),
+    Title (string)
+
+Payment inherits BaseAudit:
+    id (Guid),
+    funding_contract_id
+    payment_type_id (Guid -> Foreign Key),
+    paid_externally (bool -> default = False)
+
+
+External_Payment_Details_Response:
+    bank_account_number, 
+    bank_branch_code,
+    bank_name,
+    amount,
+    reference,
+    student_number
+
+    

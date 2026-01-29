@@ -1,0 +1,103 @@
+Data Input & Update Logic for Financial Aid Smart Contract Models
+=================================================================
+
+This document outlines the recommended order for inserting data into the system, considering primary and foreign key dependencies, and describes how updates should be handled for each model.
+
+---------------------------------------------------------------
+1. Institution
+---------------------------------------------------------------
+- **Reason:** Other entities (e.g., Student) reference Institution via foreign key.
+- **Action:** Add all institutions first.
+
+---------------------------------------------------------------
+2. Student
+---------------------------------------------------------------
+- **Reason:** Student references Institution (institution_id).
+- **Action:** Add students after institutions are created.
+
+---------------------------------------------------------------
+3. StudentBankAccountDetails
+---------------------------------------------------------------
+- **Reason:** StudentBankAccountDetails references Student (data_confirmed_by_id).
+- **Action:** Add bank account details after students are created.
+
+---------------------------------------------------------------
+4. StudentAccommodationDetails
+---------------------------------------------------------------
+- **Reason:** StudentAccommodationDetails references Student (student_id).
+- **Action:** Add accommodation details after students are created.
+
+---------------------------------------------------------------
+5. Payment_Status_Codes
+---------------------------------------------------------------
+- **Reason:** Used as a lookup table for payment statuses.
+- **Action:** Add all possible payment status codes early.
+
+---------------------------------------------------------------
+6. Payment_Type
+---------------------------------------------------------------
+- **Reason:** Used as a lookup table for payment types.
+- **Action:** Add all payment types early.
+
+---------------------------------------------------------------
+7. FunderContractConditions
+---------------------------------------------------------------
+- **Reason:** References Student, StudentBankAccountDetails, and StudentAccommodationDetails.
+- **Action:** Add after students, bank account details, and accommodation details are created.
+
+---------------------------------------------------------------
+8. FundingContract
+---------------------------------------------------------------
+- **Reason:** References Student, FunderContractConditions, and Funder.
+- **Action:** Add after students and funder contract conditions are created.
+
+---------------------------------------------------------------
+9. Payment
+---------------------------------------------------------------
+- **Reason:** References FundingContract and Payment_Type.
+- **Action:** Add after funding contracts and payment types are created.
+
+---------------------------------------------------------------
+10. StudentPayments
+---------------------------------------------------------------
+- **Reason:** References Student and Payment (student_payment_id).
+- **Action:** Add after students and payments are created.
+
+---------------------------------------------------------------
+11. AuditTrail
+---------------------------------------------------------------
+- **Reason:** Can reference any table for audit purposes.
+- **Action:** Add audit records as actions are performed on other entities.
+
+---------------------------------------------------------------
+
+Update Logic
+============
+
+- **General Rule:** Updates should respect foreign key constraints. For example, you cannot update a foreign key to reference a non-existent record.
+- **StudentBankAccountDetails:** Only update after student confirmation. Set `is_confirmed` to `False` on change, and `True` after confirmation.
+- **Status Fields:** Update `is_active`, `is_funded`, or payment statuses as business logic requires.
+- **Balances:** Update balances (e.g., in FundingContract) after payments are processed.
+- **AuditTrail:** Log all updates, inserts, and deletes for traceability.
+- **Cascade Updates:** If a referenced entity changes (e.g., a student is deactivated), ensure related contracts/payments are updated or flagged as needed.
+
+---------------------------------------------------------------
+
+Summary Table: Data Input Order
+
+| Step | Model                      | Depends On                        |
+|------|----------------------------|-----------------------------------|
+| 1    | Institution                | -                                 |
+| 2    | Student                    | Institution                       |
+| 3    | StudentBankAccountDetails  | Student                           |
+| 4    | StudentAccommodationDetails| Student                           |
+| 5    | Payment_Status_Codes       | -                                 |
+| 6    | Payment_Type               | -                                 |
+| 7    | FunderContractConditions   | Student, Bank, Accommodation      |
+| 8    | FundingContract            | Student, FunderContractConditions |
+| 9    | Payment                    | FundingContract, Payment_Type     |
+| 10   | StudentPayments            | Student, Payment                  |
+| 11   | AuditTrail                 | Any                               |
+
+---------------------------------------------------------------
+

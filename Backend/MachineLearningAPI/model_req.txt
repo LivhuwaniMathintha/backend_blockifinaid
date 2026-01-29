@@ -1,0 +1,3 @@
+payment data is as follows:
+
+['amount', 'funder', 'payment_type', 'month', 'student_id']
